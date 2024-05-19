@@ -35,7 +35,7 @@ function loadModule(moduleName) {
 
 async function initializeMapKansasCity() {
   try {
-    const [esriConfig, Map, MapView, FeatureLayer, Legend, GeoJSONLayer] =
+    const [esriConfig, Map, MapView, FeatureLayer, Legend, GeoJSONLayer, ImageElement, MediaLayer, ExtentAndRotationGeoreference, Extent] =
       await Promise.all([
         loadModule("esri/config"),
         loadModule("esri/Map"),
@@ -43,6 +43,10 @@ async function initializeMapKansasCity() {
         loadModule("esri/layers/FeatureLayer"),
         loadModule("esri/widgets/Legend"),
         loadModule("esri/layers/GeoJSONLayer"),
+        loadModule("esri/layers/support/ImageElement"),
+        loadModule("esri/layers/MediaLayer"),
+        loadModule("esri/layers/support/ExtentAndRotationGeoreference"),
+        loadModule("esri/geometry/Extent"),
       ]);
 
     esriConfig.apiKey =
@@ -1453,6 +1457,7 @@ async function initializeMapKansasCity() {
           ],
         },
       });
+
       displayMap.add(MidtownPlaza);
     });
 
@@ -1483,6 +1488,30 @@ async function initializeMapKansasCity() {
     KansasCityBoundaries.visible = false;
     // // KCMO_Neighborhoods.visible = false;
 
+
+
+    // const imageElement = new ImageElement({
+    //   type: "image",
+    //   image: "https://arcgis.github.io/arcgis-samples-javascript/sample-data/media-layer/neworleans1891.png",
+    //   georeference: new ExtentAndRotationGeoreference({
+    //     extent: new Extent({
+    //       spatialReference: {
+    //         wkid: 102100
+    //       },
+    //       xmin: 103.242601,
+    //       ymin: 848.510929,
+    //       xmax: 60.226318,
+    //       ymax: 586.500539
+    //     })
+    //   })
+    // });
+
+
+
+
+
+
+
     displayMap = new Map({
       basemap: "satellite",
       layers: [
@@ -1500,6 +1529,7 @@ async function initializeMapKansasCity() {
         // District1_Neighborhoods,
         // // KCMO_Neighborhoods,
         KansasCityBoundaries,
+        // layer
       ],
     });
 
@@ -1515,6 +1545,7 @@ async function initializeMapKansasCity() {
       },
     });
 
+    
     view.on("click", function (event) {
       view.hitTest(event).then(function (response) {
         if (response.results.length) {
@@ -1553,7 +1584,7 @@ async function initializeMapKansasCity() {
     });
 
     await view.when();
-
+    
     let legend = new Legend({
       view: view,
       // layerInfos: [
@@ -1603,6 +1634,14 @@ async function initializeMapKansasCity() {
       });
 
     clickToDownloadScreenshot();
+    addImages()
+    .then(([view, displayMap]) => {
+
+      // You can work with the view object here
+    })
+    .catch((error) => {
+      // Handle any errors here
+    });
     return [view, displayMap]; // You can return the view object
   } catch (error) {
     console.error("Error initializing map:", error);
@@ -1768,3 +1807,80 @@ async function clickToDownloadScreenshot() {
     throw error; // Rethrow the error to handle it further, if needed
   }
 }
+
+
+
+async function addImages() {
+  try {
+    // await initializeMap();
+
+    const [
+      ImageElement, MediaLayer, ExtentAndRotationGeoreference, Extent, ImageryLayer, ImageryTileLayer, MapImageLayer, TileLayer
+    ] = await Promise.all([
+      loadModule("esri/layers/support/ImageElement"),
+      loadModule("esri/layers/MediaLayer"),
+      loadModule("esri/layers/support/ExtentAndRotationGeoreference"),
+      loadModule("esri/geometry/Extent"),
+      loadModule("esri/layers/ImageryLayer"),
+      loadModule("esri/layers/ImageryTileLayer"),
+      loadModule("esri/layers/MapImageLayer"),
+      loadModule("esri/layers/TileLayer"),
+    ]);
+
+    console.log("Here")
+    // let hood = new ImageElement({
+    //   // type: "image",
+    //   image: "https://landsat2.arcgis.com/arcgis/rest/services/Landsat8_Views/ImageServer",
+    //   georeference: {
+    //     type: "extent-and-rotation",
+    //     extent: {
+    //       spatialReference: {
+    //         wkid: 102100
+    //       },
+    //       // xmax: -121.36966208089407,
+    //       // xmin: -122.36306205080291,
+    //       // ymax: 45.6782425759772,
+    //       // ymin: 45.06172549406862
+    //       xmax: -13510808.980596812,
+    //       xmin: -13621393.759401118,
+    //       ymax: 5728936.442418248,
+    //       ymin: 5631244.141931028
+    //     }
+    //   }
+    // });
+    
+    // const layer = new MediaLayer({
+    //   source: [hood],
+    //   // spatialReference: {
+    //   //   wkid: 102100
+    //   // },
+    //   // source: {
+    //   //   elements: [rainier, hood, stHelen],
+    //   //   spatialReference: {
+    //   //     wkid: 102100
+    //   //   }
+    //   // },
+    //   opacity: 0.8,
+    //   title: "Brookside",
+    //   copyright: "NASA Earth Observatory",
+    //   // effect: "drop-shadow(3px, 3px, 4px)",
+    //   // blendMode: "darken"
+    // });
+    // displayMap.add(layer);
+    
+    // Typical usage
+    let layer = new TileLayer({
+      // URL to the imagery service
+      url: "https://tiles.arcgis.com/tiles/zpMeZp1HZHTJ22NL/arcgis/rest/services/BrooksideImage/MapServer"
+    });
+    displayMap.add(layer);
+    
+    await view.when();
+
+    return [view, displayMap]; // You can return the view object
+  } catch (error) {
+    console.error("Error initializing map:", error);
+    throw error; // Rethrow the error to handle it further, if needed
+  }
+}
+
